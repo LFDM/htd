@@ -7,6 +7,7 @@ import           Data.Maybe
 import           System.Environment as Env
 import           System.IO          ()
 import           Printer
+import           ReadWrite          (createNewTodoFile)
 
 type Command = [String] -> IO ()
 
@@ -16,7 +17,7 @@ run = do
   findCommand cmd args
 
 commandList :: [(String, Command)]
-commandList = [("help", help), ("show", showTodos), ("new", newTodos)]
+commandList = [("help", help), ("show", showTodos), ("new", newTodoFile)]
 
 findCommand :: String -> Command
 findCommand cmd = fromMaybe unknown $ lookup cmd commandList
@@ -32,8 +33,10 @@ help = logCmd "help"
 showTodos :: Command
 showTodos [] = return ()
 
-newTodos :: Command
-newTodos [] = return ()
+newTodoFile :: Command
+newTodoFile [] = createNewTodoFile >>= notify
+  where notify True = putStrLn "New todo list created!"
+        notify False = putStrLn "Todo list already exists!"
 
 logCmd :: String -> Command
 logCmd cmd args = putStr $ nl (unwords output)
