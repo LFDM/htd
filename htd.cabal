@@ -1,0 +1,54 @@
+name:                htd
+version:             0.1.0.0
+-- synopsis:
+-- description:
+homepage:            https://github.com/LFDM/htd#readme
+license:             MIT
+license-file:        LICENSE
+author:              LFDM
+maintainer:          1986gh@gmail.com
+copyright:           2017 LFDM
+category:            Web
+build-type:          Simple
+extra-source-files:  README.md
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      src/lib
+  exposed-modules:     Lib
+                     , Printer
+  build-depends:       base >= 4.7 && < 5
+                     , directory
+                     , filepath
+                     , split
+                     , containers
+  default-language:    Haskell2010
+
+executable htd-exe
+  hs-source-dirs:      src/cli
+  main-is:             Main.hs
+  other-modules:       Cli
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , htd
+                     , filepath
+  default-language:    Haskell2010
+
+test-suite htd-test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Main.hs
+  other-modules:       Spec
+  build-depends:       base
+                     , htd
+                     , tasty
+                     , tasty-hunit
+                     , tasty-quickcheck
+                     , tasty-smallcheck
+                     , containers
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  default-language:    Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/LFDM/htd
