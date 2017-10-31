@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src/lib
-  exposed-modules:     Lib
+  exposed-modules:     ReadWrite
                      , Printer
   build-depends:       base >= 4.7 && < 5
                      , directory
@@ -41,7 +41,7 @@ test-suite htd-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Main.hs
-  other-modules:       Spec
+  other-modules:       ReadWriteTest
   build-depends:       base
                      , htd
                      , tasty
