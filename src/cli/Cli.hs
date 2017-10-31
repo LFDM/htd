@@ -6,6 +6,7 @@ import           Data.List
 import           Data.Maybe
 import           System.Environment as Env
 import           System.IO          ()
+import           Printer
 
 type Command = [String] -> IO ()
 
@@ -15,7 +16,7 @@ run = do
   findCommand cmd args
 
 commandList :: [(String, Command)]
-commandList = [("help", help), ("show", show)]
+commandList = [("help", help), ("show", showTodos), ("new", newTodos)]
 
 findCommand :: String -> Command
 findCommand cmd = fromMaybe unknown $ lookup cmd commandList
@@ -28,8 +29,11 @@ unknown args = putStr $ nl (unwords output)
 help :: Command
 help = logCmd "help"
 
-show :: Command
-show [] = return ()
+showTodos :: Command
+showTodos [] = return ()
+
+newTodos :: Command
+newTodos [] = return ()
 
 logCmd :: String -> Command
 logCmd cmd args = putStr $ nl (unwords output)

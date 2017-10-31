@@ -1,4 +1,4 @@
-module Spec
+module ReadWriteTest
   ( suite
   ) where
 
