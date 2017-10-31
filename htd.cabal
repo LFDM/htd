@@ -22,6 +22,9 @@ library
                      , filepath
                      , split
                      , containers
+                     , yaml
+                     , bytestring
+
   default-language:    Haskell2010
 
 executable htd-exe
