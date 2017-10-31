@@ -7,7 +7,7 @@ import           Data.Maybe
 import           System.Environment as Env
 import           System.IO          ()
 import           Printer
-import           ReadWrite          (createNewTodoFile)
+import           ReadWrite          (createNewTodoFile, readTodoList)
 
 type Command = [String] -> IO ()
 
@@ -31,7 +31,9 @@ help :: Command
 help = logCmd "help"
 
 showTodos :: Command
-showTodos [] = return ()
+showTodos [] = do
+  readTodoList
+  return ()
 
 newTodoFile :: Command
 newTodoFile [] = createNewTodoFile >>= notify
