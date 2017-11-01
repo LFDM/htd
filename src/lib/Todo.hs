@@ -26,3 +26,7 @@ instance FromJSON Todo
 instance ToJSON Todo
 
 makeLenses ''Todo
+
+mark :: TodoStatus -> Todo -> Todo
+mark s = status .~ s
+
