@@ -10,12 +10,17 @@ import qualified Data.Yaml as Y
 import Data.Yaml (FromJSON(..), ToJSON(..))
 import qualified Data.ByteString.Char8 as BS
 import Control.Lens
+import Renderable
 
 
 data TodoStatus = DONE | NOT_DONE | ARCHIVED
   deriving (Show, Generic)
 instance FromJSON TodoStatus
 instance ToJSON TodoStatus
+instance Renderable TodoStatus where
+  render DONE = "[✔]"
+  render NOT_DONE = "[ ]"
+  render ARCHIVED  = "---"
 
 data Todo = Todo { _title :: String
                  , _status :: TodoStatus
@@ -24,6 +29,8 @@ data Todo = Todo { _title :: String
 
 instance FromJSON Todo
 instance ToJSON Todo
+instance Renderable Todo where
+  render t = unwords [render (_status t), _title t]
 
 makeLenses ''Todo
 
