@@ -33,8 +33,7 @@ tryCreateNewTodoFileAtPath p False = writeFile p "" >> return True
 readTodoList :: IO (Maybe Todos)
 readTodoList = do
   ts <- getCurrentDirectory >>= findTodoFile >>= readTodoFile
-  let x = fromMaybe Todos{_todos=[], _path=""} ts
-  print x
+  print $ fromMaybe (createTodosContainer "" []) ts
   return Nothing
 
 findTodoFile :: String -> IO (Maybe FilePath)
@@ -49,11 +48,11 @@ readTodoFile Nothing = return Nothing
 readTodoFile (Just p) = BS.readFile p >>= parse >>= createTodos
   where parse f = return (Y.decode f :: Maybe [Todo])
         createTodos Nothing = return Nothing
-        createTodos (Just todos) = return $ Just Todos{_todos=todos, _path=p}
+        createTodos (Just todos) = return $ Just (createTodosContainer p todos)
 
 writeTodoFile :: Todos -> IO ()
 writeTodoFile ts = BS.writeFile p yaml
-  where yaml = Y.encode (view todos ts)
+  where yaml = Y.encode (getTodosList ts)
         p = view path ts
 
 getParentDir :: String -> String
