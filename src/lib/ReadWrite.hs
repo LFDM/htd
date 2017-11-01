@@ -11,6 +11,7 @@ import System.Environment as Env
 import Todos
 import Todo
 import Renderable
+import Printer
 import qualified Data.Yaml as Y
 
 import qualified Data.ByteString.Char8 as BS
@@ -35,7 +36,9 @@ readTodoList :: IO (Maybe Todos)
 readTodoList = do
   ts <- getCurrentDirectory >>= findTodoFile >>= readTodoFile
 
-  putStrLn $ unlines $ map render $ (getTodosList . fromMaybeTodos) ts
+  putStrLn ""
+  putStrLn $ withPadding 1 header
+  putStrLn $ withPadding 1 $ unlines $ map render $ (getTodosList . fromMaybeTodos) ts
   return Nothing
 
 findTodoFile :: String -> IO (Maybe FilePath)
