@@ -10,6 +10,7 @@ import System.FilePath
 import System.Environment as Env
 import Todos
 import Todo
+import Renderable
 import qualified Data.Yaml as Y
 
 import qualified Data.ByteString.Char8 as BS
@@ -33,7 +34,8 @@ tryCreateNewTodoFileAtPath p False = writeFile p "" >> return True
 readTodoList :: IO (Maybe Todos)
 readTodoList = do
   ts <- getCurrentDirectory >>= findTodoFile >>= readTodoFile
-  print $ fromMaybe (createTodosContainer "" []) ts
+
+  putStrLn $ unlines $ map render $ (getTodosList . fromMaybeTodos) ts
   return Nothing
 
 findTodoFile :: String -> IO (Maybe FilePath)
@@ -47,8 +49,12 @@ readTodoFile :: Maybe FilePath -> IO (Maybe Todos)
 readTodoFile Nothing = return Nothing
 readTodoFile (Just p) = BS.readFile p >>= parse >>= createTodos
   where parse f = return (Y.decode f :: Maybe [Todo])
-        createTodos Nothing = return Nothing
+        createTodos Nothing = return $ Just (createTodosContainer p [])
         createTodos (Just todos) = return $ Just (createTodosContainer p todos)
+
+fromMaybeTodos :: Maybe Todos -> Todos
+fromMaybeTodos Nothing = createTodosContainer "" []
+fromMaybeTodos (Just ts) = ts
 
 writeTodoFile :: Todos -> IO ()
 writeTodoFile ts = BS.writeFile p yaml
