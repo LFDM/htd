@@ -12,7 +12,7 @@ import qualified Data.ByteString.Char8 as BS
 import Control.Lens
 
 
-data TodoStatus = DONE | NOT_DONE
+data TodoStatus = DONE | NOT_DONE | ARCHIVED
   deriving (Show, Generic)
 instance FromJSON TodoStatus
 instance ToJSON TodoStatus
