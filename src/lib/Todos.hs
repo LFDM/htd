@@ -1,15 +1,13 @@
-module Todos (
-  Todos,
-  newTodos
-) where
+{-# LANGUAGE TemplateHaskell #-}
+
+module Todos where
 
 import Todo
+import Control.Lens
 
-data Todos = Todos { todos :: [Todo]
-                   , path :: FilePath
+data Todos = Todos { _todos :: [Todo]
+                   , _path :: FilePath
                    } deriving (Show)
 
-newTodos :: [Todo] -> FilePath -> Todos
-newTodos ts p = Todos { todos=ts, path=p }
-
+makeLenses ''Todos
 

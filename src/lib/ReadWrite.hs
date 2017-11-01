@@ -3,6 +3,7 @@ module ReadWrite (
 , readTodoList
 ) where
 
+import Control.Lens
 import Data.Maybe
 import System.Directory
 import System.FilePath
@@ -32,7 +33,8 @@ tryCreateNewTodoFileAtPath p False = writeFile p "" >> return True
 readTodoList :: IO (Maybe Todos)
 readTodoList = do
   ts <- getCurrentDirectory >>= findTodoFile >>= readTodoFile
-  print $ fromMaybe (newTodos [] "") ts
+  let x = fromMaybe Todos{_todos=[], _path=""} ts
+  print x
   return Nothing
 
 findTodoFile :: String -> IO (Maybe FilePath)
@@ -47,7 +49,12 @@ readTodoFile Nothing = return Nothing
 readTodoFile (Just p) = BS.readFile p >>= parse >>= createTodos
   where parse f = return (Y.decode f :: Maybe [Todo])
         createTodos Nothing = return Nothing
-        createTodos (Just todos) = return $ Just (newTodos todos p)
+        createTodos (Just todos) = return $ Just Todos{_todos=todos, _path=p}
+
+writeTodoFile :: Todos -> IO ()
+writeTodoFile ts = BS.writeFile p yaml
+  where yaml = Y.encode (view todos ts)
+        p = view path ts
 
 getParentDir :: String -> String
 getParentDir = joinPath . init . splitDirectories
