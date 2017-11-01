@@ -24,7 +24,6 @@ updateTodos c ts = todos .~ (Map.union newTodos oldTodos) $ c
   where newTodos = indexById ts
         oldTodos = _todos c
 
-
 indexById :: [Todo] -> Map String Todo
 indexById = fromList . List.map (\t -> (Todo.id t, t))
 
