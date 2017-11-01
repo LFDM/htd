@@ -11,10 +11,15 @@ import Data.Yaml (FromJSON(..), ToJSON(..))
 import qualified Data.ByteString.Char8 as BS
 import Control.Lens
 
-type TodoStatus = String
+
+data TodoStatus = DONE | NOT_DONE
+  deriving (Show, Generic)
+instance FromJSON TodoStatus
+instance ToJSON TodoStatus
 
 data Todo = Todo { _title :: String
                  , _status :: TodoStatus
+                 , id :: String
                  } deriving (Show, Generic)
 
 instance FromJSON Todo
