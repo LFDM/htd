@@ -5,7 +5,6 @@ module ListView
 , createListViewState
 , createListView
 , handleListEvent
-, markSelectedItem
 , getSelectedListItem
 , toggleSelectedItemStatus
 , getListItems
@@ -67,15 +66,15 @@ hasSelection = check . getSelectedListItem
   where check Nothing = False
         check (Just _) = True
 
-markSelectedItem :: TodoStatus -> TodoListView -> TodoListView
-markSelectedItem s v =  set list modifiedList v
-  where modifiedList = L.listModify (mark s) $ view list v
+updateSelectedItem :: (Todo -> Todo) -> TodoListView -> TodoListView
+updateSelectedItem f s = set list modifiedList s
+  where modifiedList = L.listModify f $ view list s
 
 toggleSelectedItemStatus :: TodoListView -> TodoListView
 toggleSelectedItemStatus ls = updateList selected
   where selected = getSelectedListItem ls
         updateList Nothing = ls
-        updateList (Just el) = markSelectedItem (getNextStatus el) ls
+        updateList (Just el) = updateSelectedItem (mark (getNextStatus el)) ls
         getNextStatus t = if (view status t == DONE) then NOT_DONE else DONE
 
 getListItems :: TodoListView -> [Todo]
