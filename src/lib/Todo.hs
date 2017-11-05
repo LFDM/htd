@@ -14,7 +14,7 @@ import Renderable
 
 
 data TodoStatus = DONE | NOT_DONE | ARCHIVED
-  deriving (Show, Generic)
+  deriving (Show, Generic, Eq)
 instance FromJSON TodoStatus
 instance ToJSON TodoStatus
 instance Renderable TodoStatus where
