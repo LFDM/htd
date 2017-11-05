@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Run where
 
@@ -26,6 +27,7 @@ import Brick.Widgets.Core
   , withAttr
   )
 import Brick.Util (fg, on)
+import Control.Lens
 
 import Todos
 import Todo
@@ -34,20 +36,27 @@ import Renderable
 
 import ListView
 
+data Screen = WELCOME | TODOS deriving (Show)
+
 data State = State { _screen :: Screen, _currentTodos :: Todos, _todoList :: TodoListView }
   deriving (Show)
 
-data TodoList = TodoList { label :: String, list :: L.List String Todo } deriving (Show)
+makeLenses ''State
 
-data Screen = WELCOME | TODOS deriving (Show)
+data TodoList = TodoList { label :: String, list :: L.List String Todo } deriving (Show)
 
 type MainUi = String
 
 attrMap :: A.AttrMap
-attrMap = A.attrMap V.defAttr []
+attrMap = A.attrMap V.defAttr
+    [ (L.listSelectedAttr,    V.black `on` V.white)
+    ]
 
-appEvent :: State -> T.BrickEvent () e -> T.EventM n (T.Next State)
-appEvent s _ = M.continue s
+
+handleEvent :: State -> T.BrickEvent () e -> T.EventM () (T.Next State)
+handleEvent s (T.VtyEvent (V.EvKey (V.KChar 'c') [V.MCtrl])) = M.halt s
+handleEvent s (T.VtyEvent e) = M.continue =<< T.handleEventLensed s todoList handleListEvent e
+handleEvent s _ = M.continue s
 
 drawUi :: State -> [Widget ()]
 drawUi s = [todoList]
@@ -56,7 +65,7 @@ drawUi s = [todoList]
 app :: M.App State e ()
 app = M.App { M.appDraw = drawUi
             , M.appChooseCursor = M.showFirstCursor
-            , M.appHandleEvent = appEvent
+            , M.appHandleEvent = handleEvent
             , M.appStartEvent = return
             , M.appAttrMap = const attrMap
   }
