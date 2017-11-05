@@ -45,10 +45,15 @@ data TodoList = TodoList { label :: String, list :: L.List String Todo } derivin
 type MainUi = String
 
 handleEvent :: State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
-handleEvent s (T.VtyEvent (V.EvKey (V.KChar 'c') [V.MCtrl])) = M.halt s
-handleEvent s (T.VtyEvent (V.EvKey V.KEnter [])) = persistAndContinue (syncTodos . toggleTodoStatus) s
-handleEvent s (T.VtyEvent e) = M.continue =<< T.handleEventLensed s todoList handleListEvent e
-handleEvent s _ = M.continue s
+handleEvent s@State{_mode=mode} e = case mode of
+                                      TODOS -> handleEventInListMode s e
+
+
+handleEventInListMode :: State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
+handleEventInListMode s (T.VtyEvent (V.EvKey (V.KChar 'c') [V.MCtrl])) = M.halt s
+handleEventInListMode s (T.VtyEvent (V.EvKey V.KEnter [])) = persistAndContinue (syncTodos . toggleTodoStatus) s
+handleEventInListMode s (T.VtyEvent e) = M.continue =<< T.handleEventLensed s todoList handleListEvent e
+handleEventInListMode  s _ = M.continue s
 
 toggleTodoStatus :: State -> State
 toggleTodoStatus s = set todoList (toggle s) s
