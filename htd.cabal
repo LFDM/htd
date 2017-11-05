@@ -23,6 +23,7 @@ library
                      , Renderable
                      , Run
                      , State
+                     , Style
                      , TitleView
                      , ListView
   build-depends:       base >= 4.7 && < 5

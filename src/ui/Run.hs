@@ -12,7 +12,6 @@ import qualified Brick.Types as T
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.List as L
 import qualified Brick.Widgets.Center as C
-import qualified Brick.AttrMap as A
 import qualified Data.Vector as Vec
 import Brick.Types
   ( Widget
@@ -29,22 +28,19 @@ import Brick.Util (fg, on)
 import Control.Lens
 
 import State
+import Style
+
 import Todos
 import Todo
 import ReadWrite
 import Renderable
 
+import TitleView
 import ListView
 
 data TodoList = TodoList { label :: String, list :: L.List String Todo } deriving (Show)
 
 type MainUi = String
-
-attrMap :: A.AttrMap
-attrMap = A.attrMap V.defAttr
-    [ (L.listSelectedAttr,    V.black `on` V.white)
-    ]
-
 
 handleEvent :: State -> T.BrickEvent () e -> T.EventM () (T.Next State)
 handleEvent s (T.VtyEvent (V.EvKey (V.KChar 'c') [V.MCtrl])) = M.halt s
@@ -52,15 +48,16 @@ handleEvent s (T.VtyEvent e) = M.continue =<< T.handleEventLensed s todoList han
 handleEvent s _ = M.continue s
 
 drawUi :: State -> [Widget ()]
-drawUi s = [todoView]
-  where todoView  = createListView . view todoList $ s
+drawUi s = [titleView, todoView]
+  where titleView = createTitleView s
+        todoView  = createListView . view todoList $ s
 
 app :: M.App State e ()
 app = M.App { M.appDraw = drawUi
             , M.appChooseCursor = M.showFirstCursor
             , M.appHandleEvent = handleEvent
             , M.appStartEvent = return
-            , M.appAttrMap = const attrMap
+            , M.appAttrMap = const styleMap
   }
 
 determineIntitialMode :: Todos -> Mode
