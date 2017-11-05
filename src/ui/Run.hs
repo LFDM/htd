@@ -98,12 +98,11 @@ updateSelectedTodoFromEditor s = withLens todoList (updateSelectedItem updateTit
         updateTitle = set title nextTitle
 
 toggleTodoStatus :: State -> State
-toggleTodoStatus s = set todoList (toggle s) s
-  where toggle = toggleSelectedItemStatus . view todoList
+toggleTodoStatus = withLens todoList toggleSelectedItemStatus
 
 syncTodos :: State -> State
-syncTodos s = set currentTodos nextContainer s
-  where nextContainer = updateTodos (view currentTodos s) nextList
+syncTodos s = withLens currentTodos nextContainer s
+  where nextContainer ts = updateTodos ts nextList
         nextList = getListItems . view todoList $ s
 
 persistAndContinue :: (State -> State) -> State -> T.EventM Name (T.Next State)
