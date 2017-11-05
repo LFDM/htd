@@ -48,7 +48,7 @@ handleEvent s (T.VtyEvent e) = M.continue =<< T.handleEventLensed s todoList han
 handleEvent s _ = M.continue s
 
 drawUi :: State -> [Widget ()]
-drawUi s = [titleView, todoView]
+drawUi s = [vBox [ titleView, todoView ]]
   where titleView = createTitleView s
         todoView  = createListView . view todoList $ s
 
