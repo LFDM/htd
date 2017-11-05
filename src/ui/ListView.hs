@@ -28,6 +28,7 @@ import Brick.Widgets.Core
   , vBox
   , withAttr
   )
+import Register
 import Todos
 import Todo
 
@@ -35,7 +36,7 @@ import Renderable
 
 import Control.Lens
 
-data TodoListView = TodoListView { label :: String, _list :: L.List () Todo } deriving (Show)
+data TodoListView = TodoListView { label :: String, _list :: L.List Name Todo } deriving (Show)
 makeLenses ''TodoListView
 
 maxColumns  = 100
@@ -43,16 +44,16 @@ maxRows  = 15
 
 createListViewState :: Todos -> TodoListView
 createListViewState ts = TodoListView { label="Todos", _list=list}
-  where list =  L.list () (vec ts) 1
+  where list =  L.list TODO_LIST (vec ts) 1
         vec = Vec.fromList . getTodosList
 
-createListView :: TodoListView -> Widget ()
+createListView :: TodoListView -> Widget Name
 createListView TodoListView { label=l, _list=ls } = C.vCenter $ vBox [ C.hCenter b ]
   where b = B.borderWithLabel (str l ) $ hLimit maxColumns $ vLimit maxRows $ renderedList
         renderedList = L.renderList drawEl True ls
         drawEl sel =  str . render
 
-handleListEvent :: V.Event -> TodoListView -> T.EventM () TodoListView
+handleListEvent :: V.Event -> TodoListView -> T.EventM Name TodoListView
 handleListEvent e v = T.handleEventLensed v list consume e
   where consume = L.handleListEvent -- also needs to handle vi bindings
 

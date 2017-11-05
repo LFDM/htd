@@ -28,6 +28,7 @@ import Brick.Widgets.Core
 import Brick.Util (fg, on)
 import Control.Lens
 
+import Register
 import State
 import Style
 
@@ -43,13 +44,13 @@ data TodoList = TodoList { label :: String, list :: L.List String Todo } derivin
 
 type MainUi = String
 
-handleEvent :: State -> T.BrickEvent () e -> T.EventM () (T.Next State)
+handleEvent :: State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
 handleEvent s (T.VtyEvent (V.EvKey (V.KChar 'c') [V.MCtrl])) = M.halt s
 handleEvent s (T.VtyEvent (V.EvKey V.KEnter [])) = handleTodoStatusToggle s
 handleEvent s (T.VtyEvent e) = M.continue =<< T.handleEventLensed s todoList handleListEvent e
 handleEvent s _ = M.continue s
 
-handleTodoStatusToggle :: State -> T.EventM () (T.Next State)
+handleTodoStatusToggle :: State -> T.EventM Name (T.Next State)
 handleTodoStatusToggle s = M.continue =<< liftIO (toggleTodoStatus s)
 
 toggleTodoStatus :: State -> IO State
@@ -64,12 +65,12 @@ syncTodos s = do
   writeTodoFile nextContainer
   return $ set currentTodos nextContainer s
 
-drawUi :: State -> [Widget ()]
+drawUi :: State -> [Widget Name]
 drawUi s = [vBox [ titleView, todoView ]]
   where titleView = createTitleView s
         todoView  = createListView . view todoList $ s
 
-app :: M.App State e ()
+app :: M.App State e Name
 app = M.App { M.appDraw = drawUi
             , M.appChooseCursor = M.showFirstCursor
             , M.appHandleEvent = handleEvent

@@ -22,6 +22,7 @@ library
                      , Printer
                      , Renderable
                      , Run
+                     , Register
                      , State
                      , Style
                      , TitleView
