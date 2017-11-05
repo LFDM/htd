@@ -61,7 +61,12 @@ handleEventInListMode s (T.VtyEvent e) = M.continue =<< T.handleEventLensed s to
 handleEventInListMode  s _ = M.continue s
 
 handleEventInEditMode :: State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
+handleEventInEditMode s (T.VtyEvent (V.EvKey (V.KChar 'c') [V.MCtrl])) = M.continue (goToListMode s)
+handleEventInEditMode s (T.VtyEvent (V.EvKey V.KEnter [])) = persistAndContinue (goToListMode . syncTodos . updateSelectedTodoFromEditor) s
 handleEventInEditMode s (T.VtyEvent e) = M.continue =<< T.handleEventLensed s editor handleEditorEvent e
+
+goToListMode :: State -> State
+goToListMode = set mode TODOS
 
 goToEditMode :: State -> State
 goToEditMode s = tryToGoToEditMode selectedItem
@@ -74,6 +79,12 @@ goToEditMode s = tryToGoToEditMode selectedItem
 
 setMode :: Mode -> State -> State
 setMode = set mode
+
+updateSelectedTodoFromEditor :: State -> State
+updateSelectedTodoFromEditor s = set todoList (update s) s
+  where update toggle = updateSelectedItem updateTitle $ view todoList s
+        nextTitle = getEditorText $ view editor s
+        updateTitle = set title nextTitle
 
 toggleTodoStatus :: State -> State
 toggleTodoStatus s = set todoList (toggle s) s
