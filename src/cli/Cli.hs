@@ -8,6 +8,7 @@ import           System.Environment as Env
 import           System.IO          ()
 import           Printer
 import           ReadWrite          (createNewTodoFile, readTodoList)
+import           Run
 
 type Command = [String] -> IO ()
 
@@ -17,7 +18,7 @@ run = do
   findCommand cmd args
 
 commandList :: [(String, Command)]
-commandList = [("help", help), ("show", showTodos), ("new", newTodoFile)]
+commandList = [("help", help), ("show", showTodos), ("new", newTodoFile), ("run", runApp)]
 
 findCommand :: String -> Command
 findCommand cmd = fromMaybe unknown $ lookup cmd commandList
