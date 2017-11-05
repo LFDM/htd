@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 module Run where
 
@@ -29,19 +28,13 @@ import Brick.Widgets.Core
 import Brick.Util (fg, on)
 import Control.Lens
 
+import State
 import Todos
 import Todo
 import ReadWrite
 import Renderable
 
 import ListView
-
-data Screen = WELCOME | TODOS deriving (Show)
-
-data State = State { _screen :: Screen, _currentTodos :: Todos, _todoList :: TodoListView }
-  deriving (Show)
-
-makeLenses ''State
 
 data TodoList = TodoList { label :: String, list :: L.List String Todo } deriving (Show)
 
@@ -59,8 +52,8 @@ handleEvent s (T.VtyEvent e) = M.continue =<< T.handleEventLensed s todoList han
 handleEvent s _ = M.continue s
 
 drawUi :: State -> [Widget ()]
-drawUi s = [todoList]
-  where todoList = createListView (_todoList s)
+drawUi s = [todoView]
+  where todoView  = createListView . view todoList $ s
 
 app :: M.App State e ()
 app = M.App { M.appDraw = drawUi
