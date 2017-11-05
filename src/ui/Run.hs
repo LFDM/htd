@@ -52,18 +52,24 @@ handleEvent s@State{_mode=mode} e = case mode of
 
 
 handleEventInListMode :: State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
-handleEventInListMode s (T.VtyEvent (V.EvKey (V.KChar 'c') [V.MCtrl])) = M.halt s
-handleEventInListMode s (T.VtyEvent (V.EvKey (V.KChar 'q') [])) = M.halt s
-handleEventInListMode s (T.VtyEvent (V.EvKey V.KEnter [])) = persistAndContinue (syncTodos . toggleTodoStatus) s
-handleEventInListMode s (T.VtyEvent (V.EvKey (V.KChar ' ') [])) = persistAndContinue (syncTodos . toggleTodoStatus) s
-handleEventInListMode s (T.VtyEvent (V.EvKey (V.KChar 'c') [])) = M.continue $ goToEditMode s
-handleEventInListMode s (T.VtyEvent e) = M.continue =<< T.handleEventLensed s todoList handleListEvent e
+handleEventInListMode s (T.VtyEvent e) =
+  case e of
+    V.EvKey (V.KChar 'c') [V.MCtrl] -> M.halt s
+    V.EvKey (V.KChar 'q') []        -> M.halt s
+    V.EvKey V.KEnter []      -> persistAndContinue (syncTodos . toggleTodoStatus) s
+    V.EvKey (V.KChar ' ') [] -> persistAndContinue (syncTodos . toggleTodoStatus) s
+    V.EvKey (V.KChar 'c') [] -> M.continue $ goToEditMode s
+    _ -> M.continue =<< T.handleEventLensed s todoList handleListEvent e
 handleEventInListMode  s _ = M.continue s
 
 handleEventInEditMode :: State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
-handleEventInEditMode s (T.VtyEvent (V.EvKey (V.KChar 'c') [V.MCtrl])) = M.continue (goToListMode s)
-handleEventInEditMode s (T.VtyEvent (V.EvKey V.KEnter [])) = persistAndContinue (goToListMode . syncTodos . updateSelectedTodoFromEditor) s
-handleEventInEditMode s (T.VtyEvent e) = M.continue =<< T.handleEventLensed s editor handleEditorEvent e
+handleEventInEditMode s (T.VtyEvent e) =
+  case e of
+    V.EvKey (V.KChar 'c') [V.MCtrl] -> M.continue (goToListMode s)
+    V.EvKey V.KEnter [] -> persistAndContinue (goToListMode . syncTodos . updateSelectedTodoFromEditor) s
+    _ -> M.continue =<< T.handleEventLensed s editor handleEditorEvent e
+handleEventInEditMode  s _ = M.continue s
+
 
 goToListMode :: State -> State
 goToListMode = set mode TODOS
