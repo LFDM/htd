@@ -3,6 +3,7 @@
 module Run where
 
 import Control.Monad (void)
+import Control.Monad.IO.Class (liftIO)
 import Data.Monoid
 import Data.Maybe (fromMaybe)
 import qualified Graphics.Vty as V
@@ -44,8 +45,24 @@ type MainUi = String
 
 handleEvent :: State -> T.BrickEvent () e -> T.EventM () (T.Next State)
 handleEvent s (T.VtyEvent (V.EvKey (V.KChar 'c') [V.MCtrl])) = M.halt s
+handleEvent s (T.VtyEvent (V.EvKey V.KEnter [])) = handleTodoStatusToggle s
 handleEvent s (T.VtyEvent e) = M.continue =<< T.handleEventLensed s todoList handleListEvent e
 handleEvent s _ = M.continue s
+
+handleTodoStatusToggle :: State -> T.EventM () (T.Next State)
+handleTodoStatusToggle s = M.continue =<< liftIO (toggleTodoStatus s)
+
+toggleTodoStatus :: State -> IO State
+toggleTodoStatus = syncTodos . updateList
+  where updateList s = set todoList (toggle s) s
+        toggle = toggleSelectedItemStatus . view todoList
+
+syncTodos :: State -> IO State
+syncTodos s = do
+  let nextList = getListItems . view todoList $ s
+  let nextContainer = updateTodos (view currentTodos s) nextList
+  writeTodoFile nextContainer
+  return $ set currentTodos nextContainer s
 
 drawUi :: State -> [Widget ()]
 drawUi s = [vBox [ titleView, todoView ]]

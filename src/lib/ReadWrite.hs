@@ -1,6 +1,7 @@
 module ReadWrite (
   createNewTodoFile
 , readTodoList
+, writeTodoFile
 ) where
 
 import Control.Lens
