@@ -41,5 +41,5 @@ createListView TodoListView { label=l, _list=ls } = C.vCenter $ vBox [ C.hCenter
         drawEl sel =  str . render
 
 handleListEvent :: V.Event -> TodoListView -> T.EventM () TodoListView
-{-handleListEvent v e = (L.handleListEventVi L.handleListEvent) e v-}
-handleListEvent e v = T.handleEventLensed v list L.handleListEvent e
+handleListEvent e v = T.handleEventLensed v list consume e
+  where consume = L.handleListEvent -- also needs to handle vi bindings
