@@ -51,7 +51,7 @@ handleEvent s (T.VtyEvent e) = M.continue =<< T.handleEventLensed s todoList han
 handleEvent s _ = M.continue s
 
 handleTodoStatusToggle :: State -> T.EventM Name (T.Next State)
-handleTodoStatusToggle s = M.continue =<< liftIO ((persist . syncTodos . toggleTodoStatus) s)
+handleTodoStatusToggle s = persistAndContinue $ (syncTodos . toggleTodoStatus) s
 
 toggleTodoStatus :: State -> State
 toggleTodoStatus s = set todoList (toggle s) s
@@ -61,6 +61,9 @@ syncTodos :: State -> State
 syncTodos s = set currentTodos nextContainer s
   where nextContainer = updateTodos (view currentTodos s) nextList
         nextList = getListItems . view todoList $ s
+
+persistAndContinue :: State -> T.EventM Name (T.Next State)
+persistAndContinue s = M.continue =<< liftIO s
 
 persist :: State -> IO State
 persist s = do
