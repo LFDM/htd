@@ -48,17 +48,29 @@ type MainUi = String
 handleEvent :: State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
 handleEvent s@State{_mode=mode} e = case mode of
                                       TODOS -> handleEventInListMode s e
+                                      TODO_EDIT -> handleEventInEditMode s e
 
 
 handleEventInListMode :: State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
 handleEventInListMode s (T.VtyEvent (V.EvKey (V.KChar 'c') [V.MCtrl])) = M.halt s
 handleEventInListMode s (T.VtyEvent (V.EvKey (V.KChar 'q') [])) = M.halt s
-{-handleEventInListMode s (T.VtyEvent (V.EvKey (V.KChar 'o') [])) = M.halt s-}
-handleEventInListMode s (T.VtyEvent (V.EvKey (V.KChar 'o') [V.MShift])) = M.halt s
 handleEventInListMode s (T.VtyEvent (V.EvKey V.KEnter [])) = persistAndContinue (syncTodos . toggleTodoStatus) s
 handleEventInListMode s (T.VtyEvent (V.EvKey (V.KChar ' ') [])) = persistAndContinue (syncTodos . toggleTodoStatus) s
+handleEventInListMode s (T.VtyEvent (V.EvKey (V.KChar 'c') [])) = M.continue $ goToEditMode s
 handleEventInListMode s (T.VtyEvent e) = M.continue =<< T.handleEventLensed s todoList handleListEvent e
 handleEventInListMode  s _ = M.continue s
+
+handleEventInEditMode :: State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
+handleEventInEditMode s (T.VtyEvent e) = M.continue =<< T.handleEventLensed s editor handleEditorEvent e
+
+goToEditMode :: State -> State
+goToEditMode s = tryToGoToEditMode selectedItem
+  where list = view todoList s
+        selectedItem = getSelectedListItem list
+        tryToGoToEditMode Nothing = s
+        tryToGoToEditMode (Just el) = (setEditMode . setupEditor el) s
+        setEditMode = set mode TODO_EDIT
+        setupEditor todo = set editor (createEditor (view title todo))
 
 setMode :: Mode -> State -> State
 setMode = set mode
