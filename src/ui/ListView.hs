@@ -55,7 +55,7 @@ createListView TodoListView { label=l, _list=ls } = C.vCenter $ vBox [ C.hCenter
 
 handleListEvent :: V.Event -> TodoListView -> T.EventM Name TodoListView
 handleListEvent e v = T.handleEventLensed v list consume e
-  where consume = L.handleListEvent -- also needs to handle vi bindings
+  where consume = L.handleListEventVi L.handleListEvent
 
 getSelectedListItem :: TodoListView -> Maybe Todo
 getSelectedListItem TodoListView { _list=ls } = getEl . L.listSelectedElement $ ls
