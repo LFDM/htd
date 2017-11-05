@@ -51,18 +51,21 @@ handleEvent s (T.VtyEvent e) = M.continue =<< T.handleEventLensed s todoList han
 handleEvent s _ = M.continue s
 
 handleTodoStatusToggle :: State -> T.EventM Name (T.Next State)
-handleTodoStatusToggle s = M.continue =<< liftIO ((syncTodos . toggleTodoStatus) s)
+handleTodoStatusToggle s = M.continue =<< liftIO ((persist . syncTodos . toggleTodoStatus) s)
 
 toggleTodoStatus :: State -> State
 toggleTodoStatus s = set todoList (toggle s) s
   where toggle = toggleSelectedItemStatus . view todoList
 
-syncTodos :: State -> IO State
-syncTodos s = do
-  let nextList = getListItems . view todoList $ s
-  let nextContainer = updateTodos (view currentTodos s) nextList
-  writeTodoFile nextContainer
-  return $ set currentTodos nextContainer s
+syncTodos :: State -> State
+syncTodos s = set currentTodos nextContainer s
+  where nextContainer = updateTodos (view currentTodos s) nextList
+        nextList = getListItems . view todoList $ s
+
+persist :: State -> IO State
+persist s = do
+  writeTodoFile $ view currentTodos s
+  return s
 
 drawUi :: State -> [Widget Name]
 drawUi s = [vBox [ titleView, todoView ]]
