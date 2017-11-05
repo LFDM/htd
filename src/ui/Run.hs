@@ -46,7 +46,7 @@ type MainUi = String
 
 handleEvent :: State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
 handleEvent s (T.VtyEvent (V.EvKey (V.KChar 'c') [V.MCtrl])) = M.halt s
-handleEvent s (T.VtyEvent (V.EvKey V.KEnter [])) = persistAndContinue' (syncTodos . toggleTodoStatus) s
+handleEvent s (T.VtyEvent (V.EvKey V.KEnter [])) = persistAndContinue (syncTodos . toggleTodoStatus) s
 handleEvent s (T.VtyEvent e) = M.continue =<< T.handleEventLensed s todoList handleListEvent e
 handleEvent s _ = M.continue s
 
@@ -59,11 +59,8 @@ syncTodos s = set currentTodos nextContainer s
   where nextContainer = updateTodos (view currentTodos s) nextList
         nextList = getListItems . view todoList $ s
 
-persistAndContinue' :: (State -> State) -> State -> T.EventM Name (T.Next State)
-persistAndContinue' f s = persistAndContinue (f s)
-
-persistAndContinue :: State -> T.EventM Name (T.Next State)
-persistAndContinue s = M.continue =<< liftIO (persist s)
+persistAndContinue :: (State -> State) -> State -> T.EventM Name (T.Next State)
+persistAndContinue f s = M.continue =<< liftIO (persist (f s))
 
 persist :: State -> IO State
 persist s = do
