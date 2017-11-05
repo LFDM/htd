@@ -39,6 +39,7 @@ import Renderable
 
 import TitleView
 import ListView
+import Editor
 
 data TodoList = TodoList { label :: String, list :: L.List String Todo } deriving (Show)
 
@@ -51,9 +52,14 @@ handleEvent s@State{_mode=mode} e = case mode of
 
 handleEventInListMode :: State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
 handleEventInListMode s (T.VtyEvent (V.EvKey (V.KChar 'c') [V.MCtrl])) = M.halt s
+{-handleEventInListMode s (T.VtyEvent (V.EvKey (V.KChar 'o') [])) = M.halt s-}
+handleEventInListMode s (T.VtyEvent (V.EvKey (V.KChar 'o') [V.MShift])) = M.halt s
 handleEventInListMode s (T.VtyEvent (V.EvKey V.KEnter [])) = persistAndContinue (syncTodos . toggleTodoStatus) s
 handleEventInListMode s (T.VtyEvent e) = M.continue =<< T.handleEventLensed s todoList handleListEvent e
 handleEventInListMode  s _ = M.continue s
+
+setMode :: Mode -> State -> State
+setMode = set mode
 
 toggleTodoStatus :: State -> State
 toggleTodoStatus s = set todoList (toggle s) s
@@ -73,9 +79,14 @@ persist s = do
   return s
 
 drawUi :: State -> [Widget Name]
-drawUi s = [vBox [ titleView, todoView ]]
+drawUi s = [vBox (widgets (view mode s))]
   where titleView = createTitleView s
         todoView  = createListView . view todoList $ s
+        editorView = createEditorView . view editor $ s
+        helpView = str "Some help text"
+        widgets TODOS = [ titleView, todoView ]
+        widgets TODO_EDIT = [ titleView, todoView, editorView ]
+        widgets _ = [ titleView, helpView ]
 
 app :: M.App State e Name
 app = M.App { M.appDraw = drawUi
@@ -96,6 +107,7 @@ createInitialState = do
   return State { _currentTodos=todoContainer
                , _todoList=createListViewState todoContainer
                , _mode=determineIntitialMode todoContainer
+               , _editor=emptyEditor
                }
 
 runApp :: [String] -> IO ()
