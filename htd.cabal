@@ -11,7 +11,7 @@ copyright:           2017 LFDM
 category:            Web
 build-type:          Simple
 extra-source-files:  README.md
-cabal-version:       >=1.10
+cabal-version:       >=1.24
 
 library
   hs-source-dirs:      src/lib
@@ -27,7 +27,8 @@ library
                      , Style
                      , TitleView
                      , ListView
-  build-depends:       base >= 4.7 && < 5
+                     , Editor
+  build-depends:       base >= 4.8 && < 5
                      , directory
                      , filepath
                      , split
