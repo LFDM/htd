@@ -32,14 +32,14 @@ tryCreateNewTodoFileAtPath :: FilePath -> Bool -> IO Bool
 tryCreateNewTodoFileAtPath p True  = return False
 tryCreateNewTodoFileAtPath p False = writeFile p "" >> return True
 
-readTodoList :: IO (Maybe Todos)
+readTodoList :: IO Todos
 readTodoList = do
   ts <- getCurrentDirectory >>= findTodoFile >>= readTodoFile
 
   putStrLn ""
   putStrLn $ withPadding 1 header
   putStrLn $ withPadding 1 $ unlines $ map render $ (getTodosList . fromMaybeTodos) ts
-  return Nothing
+  return $ fromMaybeTodos ts
 
 findTodoFile :: String -> IO (Maybe FilePath)
 findTodoFile "" = return Nothing
