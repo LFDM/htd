@@ -63,10 +63,9 @@ app = M.App { M.appDraw = drawUi
             , M.appAttrMap = const attrMap
   }
 
-determineIntitialScreen :: Todos -> Screen
-determineIntitialScreen ts | isEmpty ts = WELCOME
-determineIntitialScreen ts = TODOS
-
+determineIntitialMode :: Todos -> Mode
+determineIntitialMode ts | isEmpty ts = WELCOME
+determineIntitialMode ts = TODOS
 
 createInitialState :: IO State
 createInitialState = do
@@ -74,7 +73,7 @@ createInitialState = do
   todoContainer <- readTodoList
   return State { _currentTodos=todoContainer
                , _todoList=createListViewState todoContainer
-               , _screen=determineIntitialScreen todoContainer
+               , _mode=determineIntitialMode todoContainer
                }
 
 runApp :: [String] -> IO ()

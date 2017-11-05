@@ -7,9 +7,9 @@ import Control.Lens
 import Todos
 import ListView
 
-data Screen = WELCOME | TODOS deriving (Show)
+data Mode = WELCOME | TODOS deriving (Show)
 
-data State = State { _screen :: Screen, _currentTodos :: Todos, _todoList :: TodoListView }
+data State = State { _mode :: Mode, _currentTodos :: Todos, _todoList :: TodoListView }
   deriving (Show)
 
 makeLenses ''State
