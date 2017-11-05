@@ -1,6 +1,15 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module ListView (TodoListView, createListViewState, createListView, handleListEvent) where
+module ListView
+( TodoListView
+, createListViewState
+, createListView
+, handleListEvent
+, markSelectedItem
+, getSelectedListItem
+, toggleSelectedItemStatus
+, getListItems
+) where
 
 import qualified Data.Vector as Vec
 import qualified Brick.Widgets.Border as B
@@ -46,3 +55,28 @@ createListView TodoListView { label=l, _list=ls } = C.vCenter $ vBox [ C.hCenter
 handleListEvent :: V.Event -> TodoListView -> T.EventM () TodoListView
 handleListEvent e v = T.handleEventLensed v list consume e
   where consume = L.handleListEvent -- also needs to handle vi bindings
+
+getSelectedListItem :: TodoListView -> Maybe Todo
+getSelectedListItem TodoListView { _list=ls } = getEl . L.listSelectedElement $ ls
+  where getEl Nothing = Nothing
+        getEl (Just (_, todo)) = Just todo
+
+hasSelection :: TodoListView -> Bool
+hasSelection = check . getSelectedListItem
+  where check Nothing = False
+        check (Just _) = True
+
+markSelectedItem :: TodoStatus -> TodoListView -> TodoListView
+markSelectedItem s v =  set list modifiedList v
+  where modifiedList = L.listModify (mark s) $ view list v
+
+toggleSelectedItemStatus :: TodoListView -> TodoListView
+toggleSelectedItemStatus ls = updateList selected
+  where selected = getSelectedListItem ls
+        updateList Nothing = ls
+        updateList (Just el) = markSelectedItem (getNextStatus el) ls
+        getNextStatus t = if (view status t == DONE) then NOT_DONE else DONE
+
+getListItems :: TodoListView -> [Todo]
+getListItems = Vec.toList . view (list . L.listElementsL)
+
