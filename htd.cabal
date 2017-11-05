@@ -25,6 +25,7 @@ library
                      , Register
                      , State
                      , Style
+                     , Util
                      , TitleView
                      , ListView
                      , Editor
