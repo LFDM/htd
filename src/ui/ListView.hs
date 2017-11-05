@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module ListView where
+module ListView (TodoListView, createListViewState, createListView, handleListEvent) where
 
 import qualified Data.Vector as Vec
 import qualified Brick.Widgets.Border as B
@@ -29,6 +29,9 @@ import Control.Lens
 data TodoListView = TodoListView { label :: String, _list :: L.List () Todo } deriving (Show)
 makeLenses ''TodoListView
 
+maxColumns  = 100
+maxRows  = 15
+
 createListViewState :: Todos -> TodoListView
 createListViewState ts = TodoListView { label="Todos", _list=list}
   where list =  L.list () (vec ts) 1
@@ -36,7 +39,7 @@ createListViewState ts = TodoListView { label="Todos", _list=list}
 
 createListView :: TodoListView -> Widget ()
 createListView TodoListView { label=l, _list=ls } = C.vCenter $ vBox [ C.hCenter b ]
-  where b = B.borderWithLabel (str l ) $ hLimit 100 $ vLimit 20 $ renderedList
+  where b = B.borderWithLabel (str l ) $ hLimit maxColumns $ vLimit maxRows $ renderedList
         renderedList = L.renderList drawEl True ls
         drawEl sel =  str . render
 
