@@ -27,3 +27,6 @@ updateTodos c ts = todos .~ (Map.union newTodos oldTodos) $ c
 indexById :: [Todo] -> Map String Todo
 indexById = fromList . List.map (\t -> (Todo.id t, t))
 
+isEmpty :: Todos -> Bool
+isEmpty = Map.null . _todos
+
