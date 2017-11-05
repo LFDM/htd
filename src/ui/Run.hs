@@ -51,12 +51,11 @@ handleEvent s (T.VtyEvent e) = M.continue =<< T.handleEventLensed s todoList han
 handleEvent s _ = M.continue s
 
 handleTodoStatusToggle :: State -> T.EventM Name (T.Next State)
-handleTodoStatusToggle s = M.continue =<< liftIO (toggleTodoStatus s)
+handleTodoStatusToggle s = M.continue =<< liftIO ((syncTodos . toggleTodoStatus) s)
 
-toggleTodoStatus :: State -> IO State
-toggleTodoStatus = syncTodos . updateList
-  where updateList s = set todoList (toggle s) s
-        toggle = toggleSelectedItemStatus . view todoList
+toggleTodoStatus :: State -> State
+toggleTodoStatus s = set todoList (toggle s) s
+  where toggle = toggleSelectedItemStatus . view todoList
 
 syncTodos :: State -> IO State
 syncTodos s = do
