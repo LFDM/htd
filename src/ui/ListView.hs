@@ -7,6 +7,7 @@ module ListView
 , handleListEvent
 , getSelectedListItem
 , toggleSelectedItemStatus
+, updateSelectedItem
 , getListItems
 ) where
 
