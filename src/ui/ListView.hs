@@ -8,6 +8,7 @@ module ListView
 , getSelectedListItem
 , toggleSelectedItemStatus
 , updateSelectedItem
+, removeSelectedItem
 , getListItems
 ) where
 
@@ -58,9 +59,13 @@ handleListEvent e v = T.handleEventLensed v list consume e
   where consume = L.handleListEventVi L.handleListEvent
 
 getSelectedListItem :: TodoListView -> Maybe Todo
-getSelectedListItem TodoListView { _list=ls } = getEl . L.listSelectedElement $ ls
-  where getEl Nothing = Nothing
-        getEl (Just (_, todo)) = Just todo
+getSelectedListItem  = fmap snd . getSelection
+
+getSelectedIdx :: TodoListView -> Maybe Int
+getSelectedIdx = fmap fst . getSelection
+
+getSelection :: TodoListView -> Maybe (Int, Todo)
+getSelection TodoListView { _list=ls } = L.listSelectedElement ls
 
 hasSelection :: TodoListView -> Bool
 hasSelection = check . getSelectedListItem
@@ -70,6 +75,11 @@ hasSelection = check . getSelectedListItem
 updateSelectedItem :: (Todo -> Todo) -> TodoListView -> TodoListView
 updateSelectedItem f s = set list modifiedList s
   where modifiedList = L.listModify f $ view list s
+
+removeSelectedItem :: TodoListView -> TodoListView
+removeSelectedItem v = tryRemove . getSelectedIdx $ v
+  where tryRemove Nothing = v
+        tryRemove (Just i) = set list (L.listRemove i (view list v)) v
 
 toggleSelectedItemStatus :: TodoListView -> TodoListView
 toggleSelectedItemStatus ls = updateList selected

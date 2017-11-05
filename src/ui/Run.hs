@@ -59,6 +59,8 @@ handleEventInListMode s (T.VtyEvent e) =
     V.EvKey V.KEnter []      -> persistAndContinue (syncTodos . toggleTodoStatus) s
     V.EvKey (V.KChar ' ') [] -> persistAndContinue (syncTodos . toggleTodoStatus) s
     V.EvKey (V.KChar 'c') [] -> M.continue $ goToEditMode s
+    V.EvKey (V.KChar 'e') [] -> M.continue $ goToEditMode s
+    V.EvKey (V.KChar 'd') [] -> persistAndContinue (syncTodos . removeSelectedTodo) s
     _ -> M.continue =<< T.handleEventLensed s todoList handleListEvent e
 handleEventInListMode  s _ = M.continue s
 
@@ -70,6 +72,9 @@ handleEventInEditMode s (T.VtyEvent e) =
     _ -> M.continue =<< T.handleEventLensed s editor handleEditorEvent e
 handleEventInEditMode  s _ = M.continue s
 
+removeSelectedTodo :: State -> State
+removeSelectedTodo s = set todoList (remove s) s
+  where remove = removeSelectedItem  . view todoList
 
 goToListMode :: State -> State
 goToListMode = set mode TODOS
