@@ -74,13 +74,12 @@ hasSelection = check . getSelectedListItem
         check (Just _) = True
 
 updateSelectedItem :: (Todo -> Todo) -> TodoListView -> TodoListView
-updateSelectedItem f s = set list modifiedList s
-  where modifiedList = L.listModify f $ view list s
+updateSelectedItem f = withLens list (L.listModify f)
 
 removeSelectedItem :: TodoListView -> TodoListView
 removeSelectedItem v = tryRemove . getSelectedIdx $ v
   where tryRemove Nothing = v
-        tryRemove (Just i) = set list (L.listRemove i (view list v)) v
+        tryRemove (Just i) = withLens list (L.listRemove i) v
 
 toggleSelectedItemStatus :: TodoListView -> TodoListView
 toggleSelectedItemStatus ls = updateList selected
