@@ -4,6 +4,7 @@ module Editor
 , createEditor
 , createEditorView
 , handleEditorEvent
+, getEditorText
 ) where
 
 import Brick.Types
@@ -19,8 +20,10 @@ import Register
 
 type Editor = E.Editor String Name
 
+maxRows = Just 1
+
 createEditor :: String -> Editor
-createEditor = E.editor TODO_FORM Nothing
+createEditor = E.editor TODO_FORM maxRows
 
 emptyEditor :: Editor
 emptyEditor = createEditor ""
@@ -30,3 +33,6 @@ createEditorView = E.renderEditor (str . unlines) True
 
 handleEditorEvent :: V.Event -> Editor -> T.EventM Name Editor
 handleEditorEvent = E.handleEditorEvent
+
+getEditorText :: Editor -> String
+getEditorText = unlines . E.getEditContents
