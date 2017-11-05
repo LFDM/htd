@@ -28,6 +28,8 @@ import Brick.Widgets.Core
 import Brick.Util (fg, on)
 import Control.Lens
 
+import Util
+
 import Register
 import State
 import Style
@@ -73,8 +75,7 @@ handleEventInEditMode s (T.VtyEvent e) =
 handleEventInEditMode  s _ = M.continue s
 
 removeSelectedTodo :: State -> State
-removeSelectedTodo s = set todoList (remove s) s
-  where remove = removeSelectedItem  . view todoList
+removeSelectedTodo = withLens todoList removeSelectedItem
 
 goToListMode :: State -> State
 goToListMode = set mode TODOS
@@ -92,9 +93,8 @@ setMode :: Mode -> State -> State
 setMode = set mode
 
 updateSelectedTodoFromEditor :: State -> State
-updateSelectedTodoFromEditor s = set todoList (update s) s
-  where update toggle = updateSelectedItem updateTitle $ view todoList s
-        nextTitle = getEditorText $ view editor s
+updateSelectedTodoFromEditor s = withLens todoList (updateSelectedItem updateTitle) s
+  where nextTitle = getEditorText $ view editor s
         updateTitle = set title nextTitle
 
 toggleTodoStatus :: State -> State

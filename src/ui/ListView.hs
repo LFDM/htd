@@ -36,6 +36,7 @@ import Todo
 import Renderable
 
 import Control.Lens
+import Util
 
 data TodoListView = TodoListView { label :: String, _list :: L.List Name Todo } deriving (Show)
 makeLenses ''TodoListView
