@@ -34,13 +34,7 @@ tryCreateNewTodoFileAtPath p True  = return False
 tryCreateNewTodoFileAtPath p False = writeFile p "" >> return True
 
 readTodoList :: IO Todos
-readTodoList = do
-  ts <- getCurrentDirectory >>= findTodoFile >>= readTodoFile
-
-  putStrLn ""
-  putStrLn $ withPadding 1 header
-  putStrLn $ withPadding 1 $ unlines $ map render $ (getTodosList . fromMaybeTodos) ts
-  return $ fromMaybeTodos ts
+readTodoList = fmap fromMaybeTodos $ readTodoFile =<< findTodoFile =<< getCurrentDirectory
 
 findTodoFile :: String -> IO (Maybe FilePath)
 findTodoFile "" = return Nothing
