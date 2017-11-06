@@ -16,13 +16,17 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src/lib
   exposed-modules:     ReadWrite
+                     , Todo
+                     , Todos
                      , Printer
+                     , Renderable
   build-depends:       base >= 4.7 && < 5
                      , directory
                      , filepath
                      , split
                      , containers
                      , yaml
+                     , lens
                      , bytestring
 
   default-language:    Haskell2010

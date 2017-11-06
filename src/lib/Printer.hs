@@ -17,12 +17,22 @@ module Printer
 , toRow
 , toRowF
 , toPanel
+, header
+, withPadding
 ) where
 
 import Data.List (intercalate)
 
+header :: String
+header = join [bold h, line (length h), ""]
+  where h = "htd - Haskell Todos"
+
 nl :: String -> String
 nl str = str ++ "\n"
+
+withPadding :: Int -> String -> String
+withPadding p = unlines . map pad . lines
+  where pad t = toLine " " (p * 2) ++ t
 
 join :: [String] -> String
 join = intercalate "\n"
