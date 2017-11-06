@@ -9,12 +9,14 @@ module Editor
 , moveToEnd
 ) where
 
+import Control.Lens
 import Brick.Types
   ( Widget
   )
 import Brick.Widgets.Core
   ( str
   )
+import qualified Brick.Main as M
 import qualified Brick.Widgets.Edit as E
 import qualified Brick.Types as T
 import qualified Graphics.Vty as V
@@ -35,7 +37,12 @@ createEditorView :: Editor -> Widget Name
 createEditorView = E.renderEditor (str . unlines) True
 
 handleEditorEvent :: V.Event -> Editor -> T.EventM Name Editor
-handleEditorEvent = E.handleEditorEvent
+handleEditorEvent ev e =
+  case ev of
+    V.EvKey V.KHome [] -> return $ moveToStart e
+    V.EvKey V.KEnd [] -> return $ moveToEnd e
+    _ -> E.handleEditorEvent ev e
+
 
 getEditorText :: Editor -> String
 getEditorText = unlines . E.getEditContents
@@ -45,7 +52,7 @@ moveToStart = move (0, 0)
 
 moveToEnd :: Editor -> Editor
 moveToEnd e= move (lastPos getLineLengths) e
-  where getLineLengths = view editorContentL e
+  where getLineLengths = Z.lineLengths . view E.editContentsL $ e
         lastPos [] = (0, 0)
         lastPos xs = (length xs - 1, last xs)
 
