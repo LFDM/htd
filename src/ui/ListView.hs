@@ -9,6 +9,8 @@ module ListView
 , toggleSelectedItemStatus
 , updateSelectedItem
 , removeSelectedItem
+, insertBeforeSelection
+, insertBehindSelection
 , getListItems
 ) where
 
@@ -92,13 +94,13 @@ toggleSelectedItemStatus ls = updateList selected
 getListItems :: TodoListView -> [Todo]
 getListItems = Vec.toList . view (list . L.listElementsL)
 
-insertBeforeSelection :: TodoListView -> Todo -> TodoListView
+insertBeforeSelection :: Todo -> TodoListView -> TodoListView
 insertBeforeSelection = insertAroundSelection (0 - 1)
 
-insertBehindSelection :: TodoListView -> Todo -> TodoListView
+insertBehindSelection :: Todo -> TodoListView -> TodoListView
 insertBehindSelection = insertAroundSelection 1
 
-insertAroundSelection :: Int -> TodoListView -> Todo -> TodoListView
-insertAroundSelection offset v t = withLens list (L.listInsert pos t) v
+insertAroundSelection :: Int -> Todo -> TodoListView -> TodoListView
+insertAroundSelection offset t v = withLens list (L.listInsert pos t) v
   where pos = (fromMaybe 0 (getSelectedIdx v)) + offset
 
