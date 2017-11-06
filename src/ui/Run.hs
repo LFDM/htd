@@ -123,11 +123,16 @@ drawUi :: State -> [Widget Name]
 drawUi s = [vBox (widgets (view mode s))]
   where titleView = createTitleView s
         todoView  = createListView . view todoList $ s
-        editorView = createEditorView . view editor $ s
         helpView = str "Some help text"
         widgets TODOS = [ titleView, todoView ]
-        widgets TODO_EDIT = [ titleView, todoView, editorView ]
+        widgets TODO_EDIT = [ titleView, todoView, editorView "Edit Todo: " s ]
         widgets _ = [ titleView, helpView ]
+
+editorView :: String -> State -> Widget Name
+editorView p s = pretext <+> editView s
+  where pretext = withAttr preTextAttr $ str p
+        editView = createEditorView . view editor
+
 
 app :: M.App State e Name
 app = M.App { M.appDraw = drawUi
