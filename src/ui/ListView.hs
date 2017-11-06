@@ -130,6 +130,13 @@ switchItems x y v = if x /= y && isWithinBounds x v && isWithinBounds y v
   where a = if x < y then x else y
         b = if x < y then y else x
         isWithinBounds i v = i >= 0 && i <= (getListLength v) - 1
-        switch l = Vec.concat [Vec.take a l, Vec.fromList [l Vec.! b], Vec.slice (a + 1) (b - (a + 1)) l, Vec.fromList [l Vec.! a], Vec.drop (b + 1) l]
-        replace l = L.listReplace ((switch . (view L.listElementsL)) l) (Just y) l
+        replace l = L.listReplace ((safeSwitch a b. (view L.listElementsL)) l) (Just y) l
+
+safeSwitch :: Int -> Int -> Vec.Vector a -> Vec.Vector a
+safeSwitch x y v = Vec.concat [before, elY, inBetween, elX, after]
+  where before = Vec.take x v
+        elY = Vec.fromList [v Vec.! y]
+        inBetween = Vec.slice (x + 1) (y - (x + 1)) v
+        elX = Vec.fromList [v Vec.! x]
+        after = Vec.drop (y + 1) v
 
