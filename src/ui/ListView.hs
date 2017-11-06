@@ -101,6 +101,9 @@ insertBehindSelection :: Todo -> TodoListView -> TodoListView
 insertBehindSelection = insertAroundSelection 1
 
 insertAroundSelection :: Int -> Todo -> TodoListView -> TodoListView
-insertAroundSelection offset t v = withLens list (L.listInsert pos t) v
-  where pos = (fromMaybe 0 (getSelectedIdx v)) + offset
+insertAroundSelection offset t v = updatePosition index $ withLens list (L.listInsert pos t) v
+  where pos = (fromMaybe 0 index) + offset
+        index = getSelectedIdx v
+        updatePosition Nothing s = s
+        updatePosition (Just i) s = withLens list (L.listMoveTo (i + offset)) s
 
