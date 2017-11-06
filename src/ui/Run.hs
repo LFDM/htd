@@ -53,6 +53,7 @@ handleEvent s@State{_mode=mode} e = case mode of
                                       TODO_EDIT -> handleEventInEditorMode (return . updateSelectedTodoFromEditor) s e
                                       TODO_ADD_BEFORE -> handleEventInEditorMode createTodoFromEditor s e
                                       TODO_ADD_BEHIND -> handleEventInEditorMode createTodoFromEditor s e
+                                      _ -> M.halt s
 
 
 handleEventInListMode :: State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
@@ -69,6 +70,8 @@ handleEventInListMode s (T.VtyEvent e) =
     V.EvKey (V.KChar 'c') [] -> M.continue $ goToEditMode moveToStart s
     V.EvKey (V.KChar 'e') [] -> M.continue $ goToEditMode moveToEnd s
     V.EvKey (V.KChar 'a') [] -> M.continue $ goToEditMode moveToEnd s
+    V.EvKey (V.KChar 'K') [] -> persistAndContinue (syncTodos . moveSelectedItem' (0 - 1)) s
+    V.EvKey (V.KChar 'J') [] -> persistAndContinue (syncTodos . moveSelectedItem' 1) s
     V.EvKey (V.KChar 'd') [] -> persistAndContinue (syncTodos . removeSelectedTodo) s
     _ -> M.continue =<< T.handleEventLensed s todoList handleListEvent e
 handleEventInListMode  s _ = M.continue s
@@ -121,6 +124,9 @@ updateSelectedTodoFromEditor s = withLens todoList (updateSelectedItem updateTit
 
 toggleTodoStatus :: State -> State
 toggleTodoStatus = withLens todoList toggleSelectedItemStatus
+
+moveSelectedItem' :: Int -> State -> State
+moveSelectedItem' offset = withLens todoList (moveSelectedItem offset)
 
 syncTodos :: State -> State
 syncTodos s = withLens currentTodos nextContainer s
