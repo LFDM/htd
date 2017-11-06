@@ -42,6 +42,7 @@ import Renderable
 import TitleView
 import ListView
 import Editor
+import ConfirmDelete
 
 data TodoList = TodoList { label :: String, list :: L.List String Todo } deriving (Show)
 
@@ -53,7 +54,16 @@ handleEvent s@State{_mode=mode} e = case mode of
                                       TODO_EDIT -> handleEventInEditorMode (return . updateSelectedTodoFromEditor) s e
                                       TODO_ADD_BEFORE -> handleEventInEditorMode createTodoFromEditor s e
                                       TODO_ADD_BEHIND -> handleEventInEditorMode createTodoFromEditor s e
+                                      TODOS_CONFIRM_DELETE -> handleEventInConfirmDeleteMode s e
                                       _ -> M.halt s
+
+
+handleEventInConfirmDeleteMode :: State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
+handleEventInConfirmDeleteMode s (T.VtyEvent e) =
+  case e of
+    V.EvKey V.KEnter [] -> persistAndContinue (goToListMode . syncTodos . removeSelectedTodo) s
+    _                   -> M.continue $ goToListMode s
+
 
 
 handleEventInListMode :: State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
@@ -72,7 +82,7 @@ handleEventInListMode s (T.VtyEvent e) =
     V.EvKey (V.KChar 'a') [] -> M.continue $ goToEditMode moveToEnd s
     V.EvKey (V.KChar 'K') [] -> persistAndContinue (syncTodos . moveSelectedItem' (0 - 1)) s
     V.EvKey (V.KChar 'J') [] -> persistAndContinue (syncTodos . moveSelectedItem' 1) s
-    V.EvKey (V.KChar 'd') [] -> persistAndContinue (syncTodos . removeSelectedTodo) s
+    V.EvKey (V.KChar 'd') [] -> M.continue $ set mode TODOS_CONFIRM_DELETE s
     _ -> M.continue =<< T.handleEventLensed s todoList handleListEvent e
 handleEventInListMode  s _ = M.continue s
 
@@ -150,6 +160,7 @@ drawUi s = [vBox (widgets (view mode s))]
         widgets TODO_EDIT = [ titleView, todoView, editorView "Edit Todo: " s ]
         widgets TODO_ADD_BEFORE = [ titleView, todoView, editorView "Create Todo: " s ]
         widgets TODO_ADD_BEHIND = [ titleView, todoView, editorView "Create Todo: " s ]
+        widgets TODOS_CONFIRM_DELETE= [ titleView, todoView, createConfirmDeleteView ]
         widgets _ = [ titleView, helpView ]
 
 editorView :: String -> State -> Widget Name

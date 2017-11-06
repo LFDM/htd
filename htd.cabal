@@ -28,6 +28,7 @@ library
                      , Util
                      , TitleView
                      , ListView
+                     , ConfirmDelete
                      , Editor
   build-depends:       base >= 4.8 && < 5
                      , directory
