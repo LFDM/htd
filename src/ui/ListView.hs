@@ -11,6 +11,7 @@ module ListView
 , removeSelectedItem
 , insertBeforeSelection
 , insertBehindSelection
+, moveSelectedItem
 , getListItems
 ) where
 
@@ -24,6 +25,7 @@ import qualified Graphics.Vty as V
 import Brick.Types
   ( Widget
   )
+import Brick.Util (clamp)
 import Brick.Widgets.Core
   ( (<+>)
   , str
@@ -94,6 +96,9 @@ toggleSelectedItemStatus ls = updateList selected
 getListItems :: TodoListView -> [Todo]
 getListItems = Vec.toList . view (list . L.listElementsL)
 
+getListLength :: TodoListView -> Int
+getListLength = Vec.length . view (list . L.listElementsL)
+
 insertBeforeSelection :: Todo -> TodoListView -> TodoListView
 insertBeforeSelection = insertAroundSelection 0
 
@@ -101,9 +106,30 @@ insertBehindSelection :: Todo -> TodoListView -> TodoListView
 insertBehindSelection = insertAroundSelection 1
 
 insertAroundSelection :: Int -> Todo -> TodoListView -> TodoListView
-insertAroundSelection offset t v = updatePosition index $ withLens list (L.listInsert pos t) v
-  where pos = (fromMaybe 0 index) + offset
-        index = getSelectedIdx v
-        updatePosition Nothing s = s
-        updatePosition (Just i) s = withLens list (L.listMoveTo (i + offset)) s
+insertAroundSelection offset t v = moveSelectionRel offset $ withLens list (L.listInsert pos t) v
+  where pos = (fromMaybe 0 (getSelectedIdx v)) + offset
+
+moveSelectionRel :: Int -> TodoListView -> TodoListView
+moveSelectionRel offset v = update (getSelectedIdx v) v
+  where update Nothing s = s
+        update (Just i) s = moveSelectionAbs (i + offset) s
+
+moveSelectionAbs :: Int -> TodoListView -> TodoListView
+moveSelectionAbs idx = withLens list (L.listMoveTo idx)
+
+moveSelectedItem :: Int -> TodoListView -> TodoListView
+moveSelectedItem offset v = move pos
+  where pos = getSelectedIdx v
+        move Nothing = v
+        move (Just i) = switchItems i (i + offset) v
+
+switchItems :: Int -> Int -> TodoListView -> TodoListView
+switchItems x y v = if x /= y && isWithinBounds x v && isWithinBounds y v
+                      then withLens list replace v
+                      else v
+  where a = if x < y then x else y
+        b = if x < y then y else x
+        isWithinBounds i v = i >= 0 && i <= (getListLength v) - 1
+        switch l = Vec.concat [Vec.take a l, Vec.fromList [l Vec.! b], Vec.slice (a + 1) (b - (a + 1)) l, Vec.fromList [l Vec.! a], Vec.drop (b + 1) l]
+        replace l = L.listReplace ((switch . (view L.listElementsL)) l) (Just y) l
 
