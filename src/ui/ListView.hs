@@ -12,6 +12,7 @@ module ListView
 , getListItems
 ) where
 
+import Data.Maybe
 import qualified Data.Vector as Vec
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Center as C
@@ -92,12 +93,12 @@ getListItems :: TodoListView -> [Todo]
 getListItems = Vec.toList . view (list . L.listElementsL)
 
 insertBeforeSelection :: TodoListView -> Todo -> TodoListView
-insertBeforeSelection = insertAroundSelection -1
+insertBeforeSelection = insertAroundSelection (0 - 1)
 
 insertBehindSelection :: TodoListView -> Todo -> TodoListView
 insertBehindSelection = insertAroundSelection 1
 
 insertAroundSelection :: Int -> TodoListView -> Todo -> TodoListView
-insertAroundSelection offset v t = withLens list (L.insert pos t) v
-  where pos = (fromMaybe 0 (getSelectedIdx v)) offset
+insertAroundSelection offset v t = withLens list (L.listInsert pos t) v
+  where pos = (fromMaybe 0 (getSelectedIdx v)) + offset
 
