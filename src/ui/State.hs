@@ -10,7 +10,7 @@ import Editor
 import qualified Brick.Focus as F
 
 
-data Mode = WELCOME | TODOS | TODO_ADD | TODO_EDIT deriving (Show)
+data Mode = WELCOME | TODOS | TODO_ADD_BEFORE | TODO_ADD_BEHIND | TODO_EDIT deriving (Show, Eq)
 
 data State = State
   { _mode :: Mode

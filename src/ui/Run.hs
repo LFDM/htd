@@ -51,7 +51,8 @@ handleEvent :: State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
 handleEvent s@State{_mode=mode} e = case mode of
                                       TODOS -> handleEventInListMode s e
                                       TODO_EDIT -> handleEventInEditorMode (return . updateSelectedTodoFromEditor) s e
-                                      TODO_ADD -> handleEventInEditorMode createTodoFromEditor s e
+                                      TODO_ADD_BEFORE -> handleEventInEditorMode createTodoFromEditor s e
+                                      TODO_ADD_BEHIND -> handleEventInEditorMode createTodoFromEditor s e
 
 
 handleEventInListMode :: State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
@@ -61,8 +62,8 @@ handleEventInListMode s (T.VtyEvent e) =
     V.EvKey (V.KChar 'q') []        -> M.halt s
     V.EvKey V.KEnter []      -> persistAndContinue (syncTodos . toggleTodoStatus) s
     V.EvKey (V.KChar ' ') [] -> persistAndContinue (syncTodos . toggleTodoStatus) s
-    V.EvKey (V.KChar 'o') [] -> M.continue $ goToCreateMode 1 s
-    V.EvKey (V.KChar 'O') [] -> M.continue $ goToCreateMode 0 s
+    V.EvKey (V.KChar 'o') [] -> M.continue $ goToCreateMode TODO_ADD_BEHIND s
+    V.EvKey (V.KChar 'O') [] -> M.continue $ goToCreateMode TODO_ADD_BEFORE s
     V.EvKey (V.KChar 'I') [] -> M.continue $ goToEditMode moveToStart s
     V.EvKey (V.KChar 'i') [] -> M.continue $ goToEditMode moveToEnd s
     V.EvKey (V.KChar 'c') [] -> M.continue $ goToEditMode moveToStart s
@@ -87,8 +88,8 @@ removeSelectedTodo = withLens todoList removeSelectedItem
 goToListMode :: State -> State
 goToListMode = set mode TODOS
 
-goToCreateMode :: Int -> State -> State
-goToCreateMode offset = startEditor TODO_ADD Prelude.id ""
+goToCreateMode :: Mode -> State -> State
+goToCreateMode m = startEditor m Prelude.id ""
 
 goToEditMode :: (Editor -> Editor) -> State -> State
 goToEditMode postProcessEditor s = tryToGoToEditMode selectedItem
@@ -108,8 +109,10 @@ setMode = set mode
 createTodoFromEditor :: State -> IO State
 createTodoFromEditor s = do
   todo <- createNewTodo nextTitle
-  return $ withLens todoList (insertBeforeSelection todo) s
+  return $ withLens todoList (insert todo) s
   where nextTitle = getEditorText $ view editor s
+        insert = if m == TODO_ADD_BEFORE then insertBeforeSelection else insertBehindSelection
+        m = view mode s
 
 updateSelectedTodoFromEditor :: State -> State
 updateSelectedTodoFromEditor s = withLens todoList (updateSelectedItem updateTitle) s
@@ -139,7 +142,8 @@ drawUi s = [vBox (widgets (view mode s))]
         helpView = str "Some help text"
         widgets TODOS = [ titleView, todoView ]
         widgets TODO_EDIT = [ titleView, todoView, editorView "Edit Todo: " s ]
-        widgets TODO_ADD = [ titleView, todoView, editorView "Create Todo: " s ]
+        widgets TODO_ADD_BEFORE = [ titleView, todoView, editorView "Create Todo: " s ]
+        widgets TODO_ADD_BEHIND = [ titleView, todoView, editorView "Create Todo: " s ]
         widgets _ = [ titleView, helpView ]
 
 editorView :: String -> State -> Widget Name
