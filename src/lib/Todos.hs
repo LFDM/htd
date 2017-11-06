@@ -6,6 +6,7 @@ import Todo
 import Control.Lens
 import Data.Map as Map
 import Data.List as List
+import Util
 
 data Todos = Todos { _todos :: Map String Todo
                    , _path :: FilePath
@@ -23,6 +24,9 @@ updateTodos :: Todos -> [Todo] -> Todos
 updateTodos c ts = todos .~ (Map.union newTodos oldTodos) $ c
   where newTodos = indexById ts
         oldTodos = _todos c
+
+removeTodo :: String -> Todos -> Todos
+removeTodo k = withLens todos (Map.delete k)
 
 indexById :: [Todo] -> Map String Todo
 indexById = fromList . List.map (\t -> (Todo.id t, t))
