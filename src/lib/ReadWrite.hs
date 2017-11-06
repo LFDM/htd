@@ -45,10 +45,9 @@ findTodoFile dir = doesFileExist f >>= returnOrRecurse
 
 readTodoFile :: Maybe FilePath -> IO (Maybe Todos)
 readTodoFile Nothing = return Nothing
-readTodoFile (Just p) = BS.readFile p >>= parse >>= createTodos
-  where parse f = return (Y.decode f :: Maybe [Todo])
-        createTodos Nothing = return $ Just (createTodosContainer p [])
-        createTodos (Just todos) = return $ Just (createTodosContainer p todos)
+readTodoFile (Just p) = fmap createTodos $ parse =<< BS.readFile p
+  where parse f = return $ fromMaybe [] (Y.decode f :: Maybe [Todo])
+        createTodos todos = Just $ createTodosContainer p todos
 
 fromMaybeTodos :: Maybe Todos -> Todos
 fromMaybeTodos Nothing = createTodosContainer "" []
