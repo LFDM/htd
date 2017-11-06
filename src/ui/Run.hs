@@ -50,8 +50,8 @@ type MainUi = String
 handleEvent :: State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
 handleEvent s@State{_mode=mode} e = case mode of
                                       TODOS -> handleEventInListMode s e
-                                      TODO_EDIT -> handleEventInEditMode updateSelectedTodoFromEditor s e
-                                      TODO_ADD -> handleEventInEditMode Prelude.id s e
+                                      TODO_EDIT -> handleEventInEditorMode updateSelectedTodoFromEditor s e
+                                      TODO_ADD -> handleEventInEditorMode Prelude.id s e
 
 
 handleEventInListMode :: State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
@@ -70,14 +70,14 @@ handleEventInListMode s (T.VtyEvent e) =
     _ -> M.continue =<< T.handleEventLensed s todoList handleListEvent e
 handleEventInListMode  s _ = M.continue s
 
-handleEventInEditMode :: (State -> State) -> State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
-handleEventInEditMode onSubmit s (T.VtyEvent e) =
+handleEventInEditorMode :: (State -> State) -> State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
+handleEventInEditorMode onSubmit s (T.VtyEvent e) =
   case e of
     V.EvKey (V.KChar 'c') [V.MCtrl] -> M.continue (goToListMode s)
     V.EvKey V.KEsc [] -> M.continue (goToListMode s)
     V.EvKey V.KEnter [] -> persistAndContinue (goToListMode . syncTodos . onSubmit ) s
     _ -> M.continue =<< T.handleEventLensed s editor handleEditorEvent e
-handleEventInEditMode  _ s _ = M.continue s
+handleEventInEditorMode  _ s _ = M.continue s
 
 removeSelectedTodo :: State -> State
 removeSelectedTodo = withLens todoList removeSelectedItem
