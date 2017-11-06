@@ -60,8 +60,10 @@ handleEventInListMode s (T.VtyEvent e) =
     V.EvKey (V.KChar 'q') []        -> M.halt s
     V.EvKey V.KEnter []      -> persistAndContinue (syncTodos . toggleTodoStatus) s
     V.EvKey (V.KChar ' ') [] -> persistAndContinue (syncTodos . toggleTodoStatus) s
-    V.EvKey (V.KChar 'c') [] -> M.continue $ goToEditMode s
-    V.EvKey (V.KChar 'e') [] -> M.continue $ goToEditMode s
+    V.EvKey (V.KChar 'i') [] -> M.continue $ goToEditMode moveToStart s
+    V.EvKey (V.KChar 'c') [] -> M.continue $ goToEditMode moveToStart s
+    V.EvKey (V.KChar 'e') [] -> M.continue $ goToEditMode moveToEnd s
+    V.EvKey (V.KChar 'a') [] -> M.continue $ goToEditMode moveToEnd s
     V.EvKey (V.KChar 'd') [] -> persistAndContinue (syncTodos . removeSelectedTodo) s
     _ -> M.continue =<< T.handleEventLensed s todoList handleListEvent e
 handleEventInListMode  s _ = M.continue s
@@ -80,14 +82,15 @@ removeSelectedTodo = withLens todoList removeSelectedItem
 goToListMode :: State -> State
 goToListMode = set mode TODOS
 
-goToEditMode :: State -> State
-goToEditMode s = tryToGoToEditMode selectedItem
+goToEditMode :: (Editor -> Editor) -> State -> State
+goToEditMode postProcessEditor s = tryToGoToEditMode selectedItem
   where list = view todoList s
         selectedItem = getSelectedListItem list
         tryToGoToEditMode Nothing = s
         tryToGoToEditMode (Just el) = (setEditMode . setupEditor el) s
         setEditMode = set mode TODO_EDIT
-        setupEditor todo = set editor (createEditor (view title todo))
+        setupEditor todo = set editor (makeEditor todo)
+        makeEditor = postProcessEditor . createEditor . view title
 
 setMode :: Mode -> State -> State
 setMode = set mode
