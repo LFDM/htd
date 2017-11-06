@@ -22,7 +22,7 @@ import Todo
 titleText = "htd - Haskell Todos"
 
 createTitleView :: State -> Widget Name
-createTitleView s = vBox [ t, p ]
+createTitleView s = vBox [ t, p, str " " ]
   where t = withAttr titleAttr $ str titleText
         p = str $ view (currentTodos . path) s
 

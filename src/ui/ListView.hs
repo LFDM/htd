@@ -46,7 +46,7 @@ import Util
 data TodoListView = TodoListView { label :: String, _list :: L.List Name Todo } deriving (Show)
 makeLenses ''TodoListView
 
-maxColumns  = 100
+maxColumns  = 120
 maxRows  = 15
 
 createListViewState :: Todos -> TodoListView
@@ -55,7 +55,7 @@ createListViewState ts = TodoListView { label="Todos", _list=list}
         vec = Vec.fromList . getTodosList
 
 createListView :: TodoListView -> Widget Name
-createListView TodoListView { label=l, _list=ls } = C.vCenter $ vBox [ C.hCenter b ]
+createListView TodoListView { label=l, _list=ls } = vBox [ b ]
   where b = B.borderWithLabel (str l ) $ hLimit maxColumns $ vLimit maxRows $ renderedList
         renderedList = L.renderList drawEl True ls
         drawEl sel =  str . render
