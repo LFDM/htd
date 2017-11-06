@@ -95,7 +95,7 @@ getListItems :: TodoListView -> [Todo]
 getListItems = Vec.toList . view (list . L.listElementsL)
 
 insertBeforeSelection :: Todo -> TodoListView -> TodoListView
-insertBeforeSelection = insertAroundSelection (0 - 1)
+insertBeforeSelection = insertAroundSelection 0
 
 insertBehindSelection :: Todo -> TodoListView -> TodoListView
 insertBehindSelection = insertAroundSelection 1
