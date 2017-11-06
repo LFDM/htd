@@ -40,6 +40,7 @@ library
                      , brick
                      , vty
                      , vector
+                     , text-zipper
 
   default-language:    Haskell2010
 
