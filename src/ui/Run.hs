@@ -61,7 +61,7 @@ handleEvent s@State{_mode=mode} e = case mode of
 handleEventInConfirmDeleteMode :: State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
 handleEventInConfirmDeleteMode s (T.VtyEvent e) =
   case e of
-    V.EvKey V.KEnter [] -> persistAndContinue (goToListMode . syncTodos . removeSelectedTodo) s
+    V.EvKey V.KEnter [] -> persistAndContinue (goToListMode . removeSelectedTodo) s
     _                   -> M.continue $ goToListMode s
 
 
@@ -96,7 +96,10 @@ handleEventInEditorMode onSubmit s (T.VtyEvent e) =
 handleEventInEditorMode  _ s _ = M.continue s
 
 removeSelectedTodo :: State -> State
-removeSelectedTodo = withLens todoList removeSelectedItem
+removeSelectedTodo s = tryRemoveFromContainer sel . (withLens todoList removeSelectedItem) $ s
+  where sel = fmap Todo.id . getSelectedListItem . view todoList $ s
+        tryRemoveFromContainer Nothing nextS = nextS
+        tryRemoveFromContainer (Just todoId) nextS = withLens currentTodos (removeTodo todoId) nextS
 
 goToListMode :: State -> State
 goToListMode = set mode TODOS
