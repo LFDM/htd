@@ -73,6 +73,7 @@ handleEventInEditMode :: (State -> State) -> State -> T.BrickEvent Name e -> T.E
 handleEventInEditMode onSubmit s (T.VtyEvent e) =
   case e of
     V.EvKey (V.KChar 'c') [V.MCtrl] -> M.continue (goToListMode s)
+    V.EvKey V.KEsc [] -> M.continue (goToListMode s)
     V.EvKey V.KEnter [] -> persistAndContinue (goToListMode . syncTodos . onSubmit ) s
     _ -> M.continue =<< T.handleEventLensed s editor handleEditorEvent e
 handleEventInEditMode  _ s _ = M.continue s
