@@ -51,6 +51,7 @@ handleEvent :: State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
 handleEvent s@State{_mode=mode} e = case mode of
                                       TODOS -> handleEventInListMode s e
                                       TODO_EDIT -> handleEventInEditorMode (return . updateSelectedTodoFromEditor) s e
+                                      TODO_ADD -> handleEventInEditorMode createTodoFromEditor s e
 
 
 handleEventInListMode :: State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
@@ -103,6 +104,13 @@ startEditor m postProcess txt = setEditMode . setupEditor
 
 setMode :: Mode -> State -> State
 setMode = set mode
+
+createTodoFromEditor :: State -> IO State
+createTodoFromEditor s = do
+  todo <- createNewTodo
+  return $ withLens todoList (insertBeforeSelection (updateTodo todo)) s
+  where nextTitle = getEditorText $ view editor s
+        updateTodo = set title nextTitle
 
 updateSelectedTodoFromEditor :: State -> State
 updateSelectedTodoFromEditor s = withLens todoList (updateSelectedItem updateTitle) s
