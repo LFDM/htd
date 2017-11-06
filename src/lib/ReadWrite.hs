@@ -25,8 +25,7 @@ getTodoFileName dir = joinPath [dir, todoFileName]
 
 createNewTodoFile :: IO Bool
 createNewTodoFile = do
-  cwd <- getCurrentDirectory
-  let f = getTodoFileName cwd
+  f <- fmap getTodoFileName getCurrentDirectory
   doesFileExist f >>= tryCreateNewTodoFileAtPath f
 
 tryCreateNewTodoFileAtPath :: FilePath -> Bool -> IO Bool
@@ -60,5 +59,4 @@ writeTodoFile ts = BS.writeFile p yaml
 
 getParentDir :: String -> String
 getParentDir = joinPath . init . splitDirectories
-
 
