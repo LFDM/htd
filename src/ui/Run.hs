@@ -107,10 +107,9 @@ setMode = set mode
 
 createTodoFromEditor :: State -> IO State
 createTodoFromEditor s = do
-  todo <- createNewTodo
-  return $ withLens todoList (insertBeforeSelection (updateTodo todo)) s
+  todo <- createNewTodo nextTitle
+  return $ withLens todoList (insertBeforeSelection todo) s
   where nextTitle = getEditorText $ view editor s
-        updateTodo = set title nextTitle
 
 updateSelectedTodoFromEditor :: State -> State
 updateSelectedTodoFromEditor s = withLens todoList (updateSelectedItem updateTitle) s

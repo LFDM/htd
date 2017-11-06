@@ -39,8 +39,9 @@ makeLenses ''Todo
 mark :: TodoStatus -> Todo -> Todo
 mark s = status .~ s
 
-createNewTodo :: IO Todo
-createNewTodo = do
+createNewTodo :: String -> IO Todo
+createNewTodo t = do
   nextId <- generateId
-  return Todo { _title="", _status=NOT_DONE, Todo.id=nextId}
+  return Todo { _title=t, _status=NOT_DONE, Todo.id=nextId}
+
 
