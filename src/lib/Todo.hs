@@ -6,15 +6,17 @@ module Todo where
 
 import GHC.Generics
 
+
 import qualified Data.Yaml as Y
 import Data.Yaml (FromJSON(..), ToJSON(..))
 import qualified Data.ByteString.Char8 as BS
 import Control.Lens
 import Renderable
+import Util
 
 
 data TodoStatus = DONE | NOT_DONE | ARCHIVED
-  deriving (Show, Generic)
+  deriving (Show, Generic, Eq)
 instance FromJSON TodoStatus
 instance ToJSON TodoStatus
 instance Renderable TodoStatus where
@@ -36,4 +38,10 @@ makeLenses ''Todo
 
 mark :: TodoStatus -> Todo -> Todo
 mark s = status .~ s
+
+createNewTodo :: String -> IO Todo
+createNewTodo t = do
+  nextId <- generateId
+  return Todo { _title=t, _status=NOT_DONE, Todo.id=nextId}
+
 
