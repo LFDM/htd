@@ -61,7 +61,8 @@ handleEventInListMode s (T.VtyEvent e) =
     V.EvKey (V.KChar 'q') []        -> M.halt s
     V.EvKey V.KEnter []      -> persistAndContinue (syncTodos . toggleTodoStatus) s
     V.EvKey (V.KChar ' ') [] -> persistAndContinue (syncTodos . toggleTodoStatus) s
-    V.EvKey (V.KChar 'i') [] -> M.continue $ goToEditMode moveToStart s
+    V.EvKey (V.KChar 'I') [] -> M.continue $ goToEditMode moveToStart s
+    V.EvKey (V.KChar 'i') [] -> M.continue $ goToEditMode moveToEnd s
     V.EvKey (V.KChar 'c') [] -> M.continue $ goToEditMode moveToStart s
     V.EvKey (V.KChar 'e') [] -> M.continue $ goToEditMode moveToEnd s
     V.EvKey (V.KChar 'a') [] -> M.continue $ goToEditMode moveToEnd s
