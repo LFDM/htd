@@ -50,8 +50,7 @@ type MainUi = String
 handleEvent :: State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
 handleEvent s@State{_mode=mode} e = case mode of
                                       TODOS -> handleEventInListMode s e
-                                      TODO_EDIT -> handleEventInEditorMode updateSelectedTodoFromEditor s e
-                                      TODO_ADD -> handleEventInEditorMode Prelude.id s e
+                                      TODO_EDIT -> handleEventInEditorMode (return . updateSelectedTodoFromEditor) s e
 
 
 handleEventInListMode :: State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
@@ -61,6 +60,8 @@ handleEventInListMode s (T.VtyEvent e) =
     V.EvKey (V.KChar 'q') []        -> M.halt s
     V.EvKey V.KEnter []      -> persistAndContinue (syncTodos . toggleTodoStatus) s
     V.EvKey (V.KChar ' ') [] -> persistAndContinue (syncTodos . toggleTodoStatus) s
+    V.EvKey (V.KChar 'o') [] -> M.continue $ goToCreateMode 1 s
+    V.EvKey (V.KChar 'O') [] -> M.continue $ goToCreateMode (0 - 1) s
     V.EvKey (V.KChar 'I') [] -> M.continue $ goToEditMode moveToStart s
     V.EvKey (V.KChar 'i') [] -> M.continue $ goToEditMode moveToEnd s
     V.EvKey (V.KChar 'c') [] -> M.continue $ goToEditMode moveToStart s
@@ -70,12 +71,12 @@ handleEventInListMode s (T.VtyEvent e) =
     _ -> M.continue =<< T.handleEventLensed s todoList handleListEvent e
 handleEventInListMode  s _ = M.continue s
 
-handleEventInEditorMode :: (State -> State) -> State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
+handleEventInEditorMode :: (State -> IO State) -> State -> T.BrickEvent Name e -> T.EventM Name (T.Next State)
 handleEventInEditorMode onSubmit s (T.VtyEvent e) =
   case e of
     V.EvKey (V.KChar 'c') [V.MCtrl] -> M.continue (goToListMode s)
     V.EvKey V.KEsc [] -> M.continue (goToListMode s)
-    V.EvKey V.KEnter [] -> persistAndContinue (goToListMode . syncTodos . onSubmit ) s
+    V.EvKey V.KEnter [] -> M.continue =<< liftIO (persist =<< fmap (goToListMode . syncTodos) (onSubmit s))
     _ -> M.continue =<< T.handleEventLensed s editor handleEditorEvent e
 handleEventInEditorMode  _ s _ = M.continue s
 
@@ -85,17 +86,20 @@ removeSelectedTodo = withLens todoList removeSelectedItem
 goToListMode :: State -> State
 goToListMode = set mode TODOS
 
+goToCreateMode :: Int -> State -> State
+goToCreateMode offset = startEditor TODO_ADD Prelude.id ""
+
 goToEditMode :: (Editor -> Editor) -> State -> State
 goToEditMode postProcessEditor s = tryToGoToEditMode selectedItem
   where selectedItem = (getSelectedListItem . view todoList) s
         tryToGoToEditMode Nothing = s
-        tryToGoToEditMode (Just el) = startEditor TODO_EDIT postProcessEditor el s
+        tryToGoToEditMode (Just el) = startEditor TODO_EDIT postProcessEditor (view title el) s
 
-startEditor :: Mode -> (Editor -> Editor) -> Todo -> State -> State
-startEditor m postProcess todo = setEditMode . setupEditor
+startEditor :: Mode -> (Editor -> Editor) -> String -> State -> State
+startEditor m postProcess txt = setEditMode . setupEditor
   where setEditMode = set mode m
-        setupEditor = set editor (makeEditor todo)
-        makeEditor = postProcess . createEditor . view title
+        setupEditor = set editor (makeEditor txt)
+        makeEditor = postProcess . createEditor
 
 setMode :: Mode -> State -> State
 setMode = set mode
@@ -128,6 +132,7 @@ drawUi s = [vBox (widgets (view mode s))]
         helpView = str "Some help text"
         widgets TODOS = [ titleView, todoView ]
         widgets TODO_EDIT = [ titleView, todoView, editorView "Edit Todo: " s ]
+        widgets TODO_ADD = [ titleView, todoView, editorView "Create Todo: " s ]
         widgets _ = [ titleView, helpView ]
 
 editorView :: String -> State -> Widget Name
