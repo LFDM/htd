@@ -84,13 +84,15 @@ goToListMode = set mode TODOS
 
 goToEditMode :: (Editor -> Editor) -> State -> State
 goToEditMode postProcessEditor s = tryToGoToEditMode selectedItem
-  where list = view todoList s
-        selectedItem = getSelectedListItem list
+  where selectedItem = (getSelectedListItem . view todoList) s
         tryToGoToEditMode Nothing = s
-        tryToGoToEditMode (Just el) = (setEditMode . setupEditor el) s
-        setEditMode = set mode TODO_EDIT
-        setupEditor todo = set editor (makeEditor todo)
-        makeEditor = postProcessEditor . createEditor . view title
+        tryToGoToEditMode (Just el) = startEditor TODO_EDIT postProcessEditor el s
+
+startEditor :: Mode -> (Editor -> Editor) -> Todo -> State -> State
+startEditor m postProcess todo = setEditMode . setupEditor
+  where setEditMode = set mode m
+        setupEditor = set editor (makeEditor todo)
+        makeEditor = postProcess . createEditor . view title
 
 setMode :: Mode -> State -> State
 setMode = set mode
